@@ -1,0 +1,14 @@
+---
+- name: Yum
+  block:
+    - name: Add epel
+      yum:
+        name: epel-release
+        update_cache: yes
+
+    - name: Install Software
+      yum: 
+        name: "{{ gitea_packages }}"
+        state: present
+        update_cache: yes
+  tags: t_yum

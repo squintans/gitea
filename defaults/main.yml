@@ -1,0 +1,19 @@
+---
+# Yum packages
+gitea_packages:
+  - openssh-server
+  - git
+
+# Mysql root
+gitea_mysql_root_password: 'password'
+gitea_mysql_user: 'root'
+
+# gitea
+gitea_gitea_bin: '/usr/local/bin/gitea'
+gitea_gitea_bin_path: '/usr/local/bin'
+gitea_gitea_install: '/opt/gitea'
+gitea_gitea_repository: '/opt/git/gitea-repositories'
+gitea_mysql_host: '127.0.0.1:3306'
+gitea_mysql_gitea_user: 'gitea_user'
+gitea_mysql_gitea_password: 'gitea_pass'
+gitea_mysql_gitea_db: 'gitea_db'

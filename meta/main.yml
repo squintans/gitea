@@ -1,0 +1,22 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: squintans
+  description: Gitea/Git/MariaDB/Nginx for Centos 7 and Ubuntu.
+  license: "license (GPLv2)"
+  min_ansible_version: 2.6
+  platforms:
+    - name: EL
+      versions:
+        - 7
+    - name: Ubuntu
+      versions:
+        - cosmic
+        - bionic        
+  galaxy_tags:
+    - database
+    - mariadb
+    - nginx
+    - git
+    - gitea

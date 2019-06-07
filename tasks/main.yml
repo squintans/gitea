@@ -1,0 +1,98 @@
+---
+# Import tasks.
+- name: Import tasks RedHat
+  include_tasks: task_RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Import tasks Ubuntu
+  include_tasks: task_Ubuntu.yml
+  when: ansible_distribution == 'Ubuntu'
+
+# Git user/group
+- name: Add git user/group
+  block:
+    - name: Add group
+      group:
+        name: git
+        state: present
+   
+    - name: Add git user
+      user:
+        name: git
+        group: git
+        home: /opt/git
+  tags: t_user-group
+
+# Mysql create
+- name: Mysql create db and user
+  block:
+    - name: Create a new database
+      mysql_db: 
+        name: "{{ gitea_mysql_gitea_db }}"
+        encoding: utf8mb4
+        collation: utf8mb4_general_ci
+        state: present
+        login_user: "{{ gitea_mysql_user }}"
+        login_password: "{{ gitea_mysql_root_password }}"
+
+    - name: Create database user
+      mysql_user: 
+        name: "{{ gitea_mysql_gitea_user }}"
+        password: "{{ gitea_mysql_gitea_password }}"
+        priv: "{{ gitea_mysql_gitea_db }}.*:ALL"
+        state: present
+        login_user: "{{ gitea_mysql_user }}"
+        login_password: "{{ gitea_mysql_root_password }}"
+  tags: t_mysql-create
+
+# Install gitea
+- name: Install gitea
+  block:
+  - name: Create directory conf
+    file:
+      path: "{{ gitea_gitea_install }}/etc/gitea"
+      state: directory
+      recurse: yes
+    tags: t_gitea-conf-dir
+
+  - name: Download and extract gitea
+    get_url:
+      url: "https://dl.gitea.io/gitea/master/gitea-master-linux-amd64"
+      dest: "{{ gitea_gitea_bin_path }}/gitea"
+      owner: git
+      group: git
+      mode: 0770
+    tags: t_download
+
+
+# Templates
+- name: Templates
+  block:
+    - name: Gitea Conf Template
+      template: 
+        src: gitea_app.ini.j2
+        dest: "{{ gitea_gitea_install }}/etc/gitea/app.ini"
+      tags: t_gitea-conf
+
+    - name: gitea Systemd Template
+      template: 
+        src: gitea_service.j2
+        dest: /etc/systemd/system/gitea.service
+      notify: h_restart-gitea
+      tags: t_gitea-service
+    
+    - name: gitea Nginx Template
+      template: 
+        src: gitea_nginx.j2
+        dest: /etc/nginx/conf.d/gitea.conf
+      notify: h_restart-nginx
+      tags: t_gitea-nginx    
+
+# Gitea Permissions
+- name: gitea Permissions
+  file:
+    path: "{{ gitea_gitea_install }}"
+    owner: git
+    group: git
+    mode: '0775'
+    recurse: yes

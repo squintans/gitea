@@ -1,0 +1,7 @@
+---
+- name: Install Software
+  apt: 
+    name: "{{ gitea_packages }}"
+    state: present
+    update_cache: yes
+  tags: t_apt
