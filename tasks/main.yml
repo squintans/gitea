@@ -64,35 +64,46 @@
       mode: 0770
     tags: t_download
 
+  # Templates
+  - name: Gitea Conf Template
+    template: 
+      src: gitea_app.ini.j2
+      dest: "{{ gitea_gitea_install }}/etc/gitea/app.ini"
+    tags: t_gitea-conf
 
-# Templates
-- name: Templates
-  block:
-    - name: Gitea Conf Template
-      template: 
-        src: gitea_app.ini.j2
-        dest: "{{ gitea_gitea_install }}/etc/gitea/app.ini"
-      tags: t_gitea-conf
+  - name: gitea Systemd Template
+    template: 
+      src: gitea_service.j2
+      dest: /etc/systemd/system/gitea.service
+    tags: t_gitea-service
+  
+  - name: gitea Nginx Template
+    template: 
+      src: gitea_nginx.j2
+      dest: /etc/nginx/conf.d/gitea.conf
+    tags: t_gitea-nginx    
 
-    - name: gitea Systemd Template
-      template: 
-        src: gitea_service.j2
-        dest: /etc/systemd/system/gitea.service
-      notify: h_restart-gitea
-      tags: t_gitea-service
-    
-    - name: gitea Nginx Template
-      template: 
-        src: gitea_nginx.j2
-        dest: /etc/nginx/conf.d/gitea.conf
-      notify: h_restart-nginx
-      tags: t_gitea-nginx    
+  # Gitea Permissions
+  - name: gitea Permissions
+    file:
+      path: "{{ gitea_gitea_install }}"
+      owner: git
+      group: git
+      mode: '0775'
+      recurse: yes
 
-# Gitea Permissions
-- name: gitea Permissions
-  file:
-    path: "{{ gitea_gitea_install }}"
-    owner: git
-    group: git
-    mode: '0775'
-    recurse: yes
+  # Services.
+  - name: Services
+    service: 
+      name: "{{ item }}"
+      state: restarted
+      enabled: yes
+    loop:
+      - nginx
+      - gitea
+
+  # Nginx Verify is listening on port 80
+  - name: Nginx Verify port 80
+    wait_for:
+      port: 80
+      timeout: 2
